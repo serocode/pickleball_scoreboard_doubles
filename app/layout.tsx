@@ -16,9 +16,8 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: 'KINETIC COURT | Pickleball Scoreboard',
-  description: 'Premium doubles pickleball scoring system with real-time tracking, analytics, and kinetic court visualization',
-  generator: 'v0.app',
+  title: 'Kitchen Counter | Pickleball Scoreboard',
+  description: 'Premium doubles pickleball scoring system with real-time tracking and analytics',
   icons: {
     icon: [
       {

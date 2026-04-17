@@ -3,10 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ============================================
-   KINETIC COURT — Design System Tokens
-   ============================================ */
-
 :root {
   /* Surfaces (dark → light depth layers) */
   --kc-bg: #090e15;
@@ -122,7 +118,6 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Kinetic Court custom colors for Tailwind utilities */
   --color-kc-bg: var(--kc-bg);
   --color-kc-surface: var(--kc-surface);
   --color-kc-surface-mid: var(--kc-surface-mid);
@@ -147,10 +142,13 @@
    ============================================ */
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 8px var(--kc-accent-glow), 0 0 24px var(--kc-accent-glow);
     opacity: 1;
   }
+
   50% {
     box-shadow: 0 0 16px var(--kc-accent-glow-strong), 0 0 48px var(--kc-accent-glow);
     opacity: 0.85;
@@ -161,9 +159,11 @@
   0% {
     transform: scale(1);
   }
+
   30% {
     transform: scale(1.08);
   }
+
   100% {
     transform: scale(1);
   }
@@ -174,6 +174,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -185,6 +186,7 @@
     opacity: 0;
     transform: translateX(-12px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -192,14 +194,22 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes glow-ring {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 2px var(--kc-accent-glow);
   }
+
   50% {
     box-shadow: 0 0 0 6px var(--kc-accent-glow), 0 0 20px var(--kc-accent-glow);
   }
@@ -260,11 +270,25 @@
 }
 
 /* Stagger delays for list animations */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
 
 /* Material Icons configuration */
 .material-symbols-outlined {

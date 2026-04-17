@@ -88,7 +88,7 @@ export function PickleballDashboard() {
             className="text-2xl font-black italic tracking-widest font-lexend uppercase"
             style={{ color: 'var(--kc-accent)' }}
           >
-            KINETIC COURT
+            Kitchen Counter
           </h1>
         </div>
         <div className="flex items-center gap-4">

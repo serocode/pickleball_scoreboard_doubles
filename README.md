@@ -1,4 +1,4 @@
-# 🎾 Pickleball Scoreboard — Doubles Edition
+# Pickleball Scoreboard — Doubles Edition
 
 A premium, modern, and high-performance scoreboard application designed specifically for **Pickleball Doubles**. This application tracks score, server number, player positions on the court, and detailed match analytics all in real-time.
 
