@@ -5,7 +5,7 @@ import { usePickleballGame } from '@/hooks/usePickleballGame';
 import { ScoreDisplay } from './score-display';
 import { CourtDiagram } from './court-diagram';
 import { ControlPanel } from './control-panel';
-import { PlayerCards } from './player-cards';
+import { PlayersView } from './players-view';
 import { PlayerSetupModal } from './player-setup';
 import { StatsView } from './stats-view';
 import { HistoryView } from './history-view';
@@ -108,8 +108,17 @@ export function PickleballDashboard() {
         </div>
       </header>
 
-      {/* ========== MAIN CONTENT ========== */}
-      <main className="mt-20 px-4 max-w-5xl mx-auto">
+      {/* ========== VIEW CONTENT ========== */}
+      {activeView === 'players' ? (
+        <main className="mt-16 flex-1 w-full flex flex-col h-[calc(100vh-64px)] overflow-hidden animate-fade-in">
+          <PlayersView 
+            gameState={gameState} 
+            matchWon={matchWon} 
+            onEditPlayers={() => setSetupModalOpen(true)}
+          />
+        </main>
+      ) : (
+      <main className="mt-20 px-4 max-w-5xl mx-auto pb-32 w-full">
         {/* Match Won / Game Won Banners */}
         {matchWon.isWon ? (
           <div className="mb-6 rounded-[32px] p-8 text-center animate-fade-in" style={{ background: 'var(--kc-accent-container)', color: 'var(--kc-on-accent)' }}>
@@ -183,7 +192,6 @@ export function PickleballDashboard() {
                 gameState={gameState}
                 servingTeam={servingTeam}
                 lastAction={lastAction}
-                serverPosition={serverPosition}
               />
               <ControlPanel
                 onScorePoint={scorePoint}
@@ -215,41 +223,12 @@ export function PickleballDashboard() {
             />
           )}
 
-          {activeView === 'players' && (
-            <div className="space-y-6">
-              <div className="flex flex-col gap-1 mb-2">
-                <span
-                  className="text-[10px] font-lexend uppercase tracking-[0.2em]"
-                  style={{ color: 'var(--kc-text-dim)' }}
-                >
-                  Match Roster
-                </span>
-                <h2 className="text-xl font-lexend font-bold">Players</h2>
-              </div>
-              <PlayerCards
-                teamName={gameState.teams.A.name}
-                players={gameState.teams.A.players}
-                isServing={servingTeam === 'A'}
-                serverNumber={servingTeam === 'A' ? gameState.serving.serverNumber : undefined}
-                teamLabel="TEAM 1"
-                accentColor="var(--kc-accent)"
-              />
-              <PlayerCards
-                teamName={gameState.teams.B.name}
-                players={gameState.teams.B.players}
-                isServing={servingTeam === 'B'}
-                serverNumber={servingTeam === 'B' ? gameState.serving.serverNumber : undefined}
-                teamLabel="TEAM 2"
-                accentColor="var(--kc-secondary-text)"
-              />
-            </div>
-          )}
-
           {activeView === 'history' && (
             <HistoryView events={events} gameState={gameState} />
           )}
         </div>
       </main>
+      )}
 
       {/* ========== BOTTOM NAVIGATION ========== */}
       <nav
