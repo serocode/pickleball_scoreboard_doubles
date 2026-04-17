@@ -21,6 +21,7 @@ export function PickleballDashboard() {
     scorePoint,
     recordFault,
     resetGame,
+    resetGameKeepSettings,
     startNextGame,
     undo,
     updateMatchSettings,
@@ -30,6 +31,8 @@ export function PickleballDashboard() {
     gameWon,
     matchWon,
     momentum,
+    winProbability,
+    matchStats,
     events,
   } = usePickleballGame();
 
@@ -196,6 +199,8 @@ export function PickleballDashboard() {
               scoreCall={scoreCall}
               momentum={momentum}
               gamePoint={gamePoint}
+              winProbability={winProbability}
+              matchStats={matchStats}
             />
           )}
 
@@ -293,6 +298,7 @@ export function PickleballDashboard() {
         open={confirmResetOpen}
         onOpenChange={setConfirmResetOpen}
         onConfirm={resetGame}
+        onConfirmKeepSettings={resetGameKeepSettings}
       />
     </div>
   );

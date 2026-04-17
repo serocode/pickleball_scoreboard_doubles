@@ -1,6 +1,6 @@
 'use client';
 
-import { GameState } from '@/lib/pickleball-state';
+import { GameState, MatchStats, MATCH_MODES, safeMatchMode } from '@/lib/pickleball-state';
 
 interface StatsViewProps {
   gameState: GameState;
@@ -20,27 +20,22 @@ interface StatsViewProps {
     isGamePoint: boolean;
     team: 'A' | 'B' | null;
   };
+  winProbability: number;
+  matchStats: { A: MatchStats; B: MatchStats };
 }
 
-export function StatsView({ gameState, scoreCall, momentum, gamePoint }: StatsViewProps) {
+export function StatsView({ gameState, scoreCall, momentum, gamePoint, winProbability, matchStats }: StatsViewProps) {
   const teamA = gameState.teams.A;
   const teamB = gameState.teams.B;
+  const matchMode = safeMatchMode(gameState.matchMode);
+  const isMultiGame = matchMode !== 'casual';
 
-  // Calculate stats from events
-  const teamAPoints = gameState.events.filter(e => e.type === 'point' && e.team === 'A').length;
-  const teamBPoints = gameState.events.filter(e => e.type === 'point' && e.team === 'B').length;
-  const teamAFaults = gameState.events.filter(e => (e.type === 'fault' || e.type === 'sideout') && e.team === 'A').length;
-  const teamBFaults = gameState.events.filter(e => (e.type === 'fault' || e.type === 'sideout') && e.team === 'B').length;
-  const teamASideouts = gameState.events.filter(e => e.type === 'sideout' && e.team === 'A').length;
-  const teamBSideouts = gameState.events.filter(e => e.type === 'sideout' && e.team === 'B').length;
-  const totalEvents = gameState.events.length;
-
-  // Win probability rough estimate based on score
-  const totalScore = teamA.score + teamB.score;
-  const winProbA = totalScore > 0 ? Math.round((teamA.score / Math.max(totalScore, 1)) * 100) : 50;
+  const winProbA = winProbability;
   const winProbB = 100 - winProbA;
 
-  // Momentum last 5 point events
+  const totalEvents = gameState.events.length;
+
+  // Last 5 point events (used for momentum visualization)
   const last5Points = gameState.events.filter(e => e.type === 'point').slice(-5);
 
   return (
@@ -80,13 +75,26 @@ export function StatsView({ gameState, scoreCall, momentum, gamePoint }: StatsVi
             >
               Win Probability
             </p>
-            <h4 className="text-4xl font-lexend font-bold" style={{ color: 'var(--kc-text)' }}>
-              {winProbA}
-              <span className="text-lg font-normal" style={{ color: 'var(--kc-text-dim)' }}>%</span>
-            </h4>
-            <p className="text-[10px] mt-1" style={{ color: 'var(--kc-text-muted)' }}>
-              {teamA.name}
-            </p>
+            <div className="flex justify-between items-baseline">
+              <div>
+                <h4 className="text-4xl font-lexend font-bold" style={{ color: winProbA >= winProbB ? 'var(--kc-accent-container)' : 'var(--kc-text)' }}>
+                  {winProbA}
+                  <span className="text-lg font-normal" style={{ color: 'var(--kc-text-dim)' }}>%</span>
+                </h4>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--kc-text-muted)' }}>
+                  {teamA.name}
+                </p>
+              </div>
+              <div className="text-right">
+                <h4 className="text-4xl font-lexend font-bold" style={{ color: winProbB > winProbA ? 'var(--kc-accent-container)' : 'var(--kc-text)' }}>
+                  {winProbB}
+                  <span className="text-lg font-normal" style={{ color: 'var(--kc-text-dim)' }}>%</span>
+                </h4>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--kc-text-muted)' }}>
+                  {teamB.name}
+                </p>
+              </div>
+            </div>
           </div>
           <div className="mt-6 flex items-center gap-1 h-3 rounded-full overflow-hidden" style={{ background: 'var(--kc-surface-highest)' }}>
             <div
@@ -135,7 +143,7 @@ export function StatsView({ gameState, scoreCall, momentum, gamePoint }: StatsVi
             )}
           </div>
 
-          {/* Last 5 points visualization */}
+          {/* Last 5 points visualization — deterministic bar heights */}
           <div className="flex items-end gap-2 h-20">
             {last5Points.length === 0 ? (
               <p
@@ -145,19 +153,33 @@ export function StatsView({ gameState, scoreCall, momentum, gamePoint }: StatsVi
                 No points scored yet
               </p>
             ) : (
-              last5Points.map((event, i) => (
-                <div
-                  key={i}
-                  className="flex-1 rounded-lg transition-all duration-300 animate-slide-in-up"
-                  style={{
-                    height: `${40 + Math.random() * 40}px`,
-                    background: event.team === 'A' ? 'var(--kc-accent-container)' : 'var(--kc-surface-bright)',
-                    animationDelay: `${i * 0.05}s`,
-                    minWidth: '12px',
-                    maxWidth: '32px',
-                  }}
-                />
-              ))
+              last5Points.map((event, i) => {
+                // Deterministic height based on score at time of event
+                const maxScore = Math.max(event.scoreAfter.A, event.scoreAfter.B, 1);
+                const eventScore = event.scoreAfter[event.team];
+                const heightPct = 40 + (eventScore / maxScore) * 40;
+                return (
+                  <div
+                    key={event.id || i}
+                    className="flex-1 rounded-lg transition-all duration-300 animate-slide-in-up relative group"
+                    style={{
+                      height: `${heightPct}px`,
+                      background: event.team === 'A' ? 'var(--kc-accent-container)' : 'var(--kc-surface-bright)',
+                      animationDelay: `${i * 0.05}s`,
+                      minWidth: '12px',
+                      maxWidth: '32px',
+                    }}
+                  >
+                    {/* Tooltip */}
+                    <div
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg text-[9px] font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text)' }}
+                    >
+                      {event.team === 'A' ? teamA.name : teamB.name}
+                    </div>
+                  </div>
+                );
+              })
             )}
             {/* Fill empty slots */}
             {Array.from({ length: Math.max(0, 5 - last5Points.length) }).map((_, i) => (
@@ -230,33 +252,42 @@ export function StatsView({ gameState, scoreCall, momentum, gamePoint }: StatsVi
             {teamB.name}
           </div>
 
-          {/* Score */}
+          {/* Score (current game) */}
           <StatRow
             valueA={teamA.score}
             label="Score"
             valueB={teamB.score}
           />
 
-          {/* Points Won */}
+          {/* Games Won (only for multi-game matches) */}
+          {isMultiGame && (
+            <StatRow
+              valueA={gameState.gamesWon?.A ?? 0}
+              label="Games Won"
+              valueB={gameState.gamesWon?.B ?? 0}
+            />
+          )}
+
+          {/* Cumulative Points Won */}
           <StatRow
-            valueA={teamAPoints}
+            valueA={matchStats.A.pointsWon}
             label="Points Won"
-            valueB={teamBPoints}
+            valueB={matchStats.B.pointsWon}
           />
 
-          {/* Faults */}
+          {/* Cumulative Faults */}
           <StatRow
-            valueA={teamAFaults}
+            valueA={matchStats.A.faults}
             label="Faults"
-            valueB={teamBFaults}
+            valueB={matchStats.B.faults}
             invertHighlight
           />
 
-          {/* Side-outs */}
+          {/* Cumulative Side-outs */}
           <StatRow
-            valueA={teamASideouts}
+            valueA={matchStats.A.sideOuts}
             label="Side-outs"
-            valueB={teamBSideouts}
+            valueB={matchStats.B.sideOuts}
             invertHighlight
           />
         </div>

@@ -27,11 +27,22 @@ export interface ServingState {
   isFirstServe: boolean;
 }
 
+// ─── Cumulative per-team stats across all games in a match ─────────────────────
+export interface MatchStats {
+  pointsWon: number;
+  faults: number;
+  sideOuts: number;
+}
+
 export interface GameEvent {
+  id: string;
   type: 'point' | 'fault' | 'sideout';
   team: 'A' | 'B';
+  server: 1 | 2;
+  score: string; // "X-Y-Z" format (servingScore-receivingScore-serverNumber)
   scoreAfter: { A: number; B: number };
   serverAfter: { team: 'A' | 'B'; serverNumber: 1 | 2 };
+  game: number;
   timestamp: number;
 }
 
@@ -46,9 +57,14 @@ export interface GameState {
   currentGame: number;
   isMatchStarted: boolean;
   isMatchOver: boolean;
+  matchStats: { A: MatchStats; B: MatchStats };
   events: GameEvent[];
   gameHistory: GameState[];
 }
+
+// ─── Defaults ─────────────────────────────────────────────────────────────────
+
+const EMPTY_MATCH_STATS: MatchStats = { pointsWon: 0, faults: 0, sideOuts: 0 };
 
 const INITIAL_GAME_STATE: GameState = {
   teams: {
@@ -75,11 +91,15 @@ const INITIAL_GAME_STATE: GameState = {
   currentGame: 1,
   isMatchStarted: false,
   isMatchOver: false,
+  matchStats: {
+    A: { ...EMPTY_MATCH_STATS },
+    B: { ...EMPTY_MATCH_STATS },
+  },
   events: [],
   gameHistory: [],
 };
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
  * Coerce any string to a valid MatchMode, falling back to 'casual'.
@@ -89,6 +109,33 @@ const INITIAL_GAME_STATE: GameState = {
 export function safeMatchMode(value: string | undefined | null): MatchMode {
   if (value && value in MATCH_MODES) return value as MatchMode;
   return 'casual';
+}
+
+/** Generate a short unique ID for events. */
+function generateId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Ensure matchStats exists on a deserialized state.
+ * Older persisted states may not have matchStats.
+ */
+export function ensureMatchStats(state: GameState): GameState {
+  if (!state.matchStats) {
+    // Rebuild stats from events if they exist
+    const stats = { A: { ...EMPTY_MATCH_STATS }, B: { ...EMPTY_MATCH_STATS } };
+    for (const event of (state.events || [])) {
+      if (event.type === 'point') {
+        stats[event.team].pointsWon++;
+      } else if (event.type === 'fault') {
+        stats[event.team].faults++;
+      } else if (event.type === 'sideout') {
+        stats[event.team].sideOuts++;
+      }
+    }
+    return { ...state, matchStats: stats };
+  }
+  return state;
 }
 
 // ─── Position helpers ─────────────────────────────────────────────────────────
@@ -108,6 +155,17 @@ export function rotatePositions(team: Team): Team {
   };
 }
 
+// ─── Score Call Formatting ────────────────────────────────────────────────────
+
+/** Format a score call string as "servingScore-receivingScore-serverNumber" */
+function formatScoreCall(
+  servingTeamScore: number,
+  receivingTeamScore: number,
+  serverNumber: 1 | 2,
+): string {
+  return `${servingTeamScore}-${receivingTeamScore}-${serverNumber}`;
+}
+
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 // Handle point scored by serving team
@@ -117,21 +175,40 @@ export function scorePoint(state: GameState): GameState {
   newState.isMatchStarted = true;
   // Ensure matchMode is always valid after deserialization
   newState.matchMode = safeMatchMode(newState.matchMode);
+  // Ensure matchStats after deserialization
+  if (!newState.matchStats) {
+    newState.matchStats = { A: { ...EMPTY_MATCH_STATS }, B: { ...EMPTY_MATCH_STATS } };
+  }
 
   const servingTeamKey = newState.serving.team;
+  const receivingTeamKey = servingTeamKey === 'A' ? 'B' : 'A';
   newState.teams[servingTeamKey].score += 1;
 
   // Rotate the serving team's positions
   newState.teams[servingTeamKey] = rotatePositions(newState.teams[servingTeamKey]);
 
+  // Increment cumulative stats
+  newState.matchStats[servingTeamKey].pointsWon += 1;
+
+  // Build score call string (after scoring)
+  const scoreStr = formatScoreCall(
+    newState.teams[servingTeamKey].score,
+    newState.teams[receivingTeamKey].score,
+    newState.serving.serverNumber,
+  );
+
   // Record event
   newState.events = [
     ...state.events,
     {
+      id: generateId(),
       type: 'point',
       team: servingTeamKey,
+      server: newState.serving.serverNumber,
+      score: scoreStr,
       scoreAfter: { A: newState.teams.A.score, B: newState.teams.B.score },
       serverAfter: { team: newState.serving.team, serverNumber: newState.serving.serverNumber },
+      game: newState.currentGame ?? 1,
       timestamp: Date.now(),
     },
   ];
@@ -146,6 +223,10 @@ export function recordFault(state: GameState): GameState {
   newState.isMatchStarted = true;
   // Ensure matchMode is always valid after deserialization
   newState.matchMode = safeMatchMode(newState.matchMode);
+  // Ensure matchStats after deserialization
+  if (!newState.matchStats) {
+    newState.matchStats = { A: { ...EMPTY_MATCH_STATS }, B: { ...EMPTY_MATCH_STATS } };
+  }
 
   const currentServingTeam = newState.serving.team;
   const otherTeam = currentServingTeam === 'A' ? 'B' : 'A';
@@ -155,22 +236,39 @@ export function recordFault(state: GameState): GameState {
   if (newState.serving.serverNumber === 1) {
     // First server lost, switch to second server
     newState.serving.serverNumber = 2;
+    // Increment faults for the serving team
+    newState.matchStats[currentServingTeam].faults += 1;
   } else {
     // Second server lost, side-out to other team
     newState.serving.team = otherTeam;
     newState.serving.serverNumber = 1;
     newState.serving.isFirstServe = false;
     eventType = 'sideout';
+    // Increment sideOuts for the serving team (the team that lost serve)
+    newState.matchStats[currentServingTeam].sideOuts += 1;
   }
+
+  // Build score call string (after fault)
+  const servingNow = newState.serving.team;
+  const receivingNow = servingNow === 'A' ? 'B' : 'A';
+  const scoreStr = formatScoreCall(
+    newState.teams[servingNow].score,
+    newState.teams[receivingNow].score,
+    newState.serving.serverNumber,
+  );
 
   // Record event
   newState.events = [
     ...state.events,
     {
+      id: generateId(),
       type: eventType,
       team: currentServingTeam,
+      server: state.serving.serverNumber,
+      score: scoreStr,
       scoreAfter: { A: newState.teams.A.score, B: newState.teams.B.score },
       serverAfter: { team: newState.serving.team, serverNumber: newState.serving.serverNumber },
+      game: newState.currentGame ?? 1,
       timestamp: Date.now(),
     },
   ];
@@ -178,7 +276,7 @@ export function recordFault(state: GameState): GameState {
   return newState;
 }
 
-// Reset game to initial state
+// Reset game to initial state (full reset — clears everything)
 export function resetGame(state?: GameState): GameState {
   const base = JSON.parse(JSON.stringify(INITIAL_GAME_STATE)) as GameState;
   if (state) {
@@ -189,6 +287,17 @@ export function resetGame(state?: GameState): GameState {
     // Validate matchMode before copying to avoid propagating a bad value
     base.matchMode = safeMatchMode(state.matchMode);
   }
+  return base;
+}
+
+// Reset while keeping match mode & player settings ("restart with same settings")
+export function resetGameKeepSettings(state: GameState): GameState {
+  const base = JSON.parse(JSON.stringify(INITIAL_GAME_STATE)) as GameState;
+  base.teams.A.name = state.teams.A.name;
+  base.teams.B.name = state.teams.B.name;
+  base.teams.A.players = JSON.parse(JSON.stringify(state.teams.A.players));
+  base.teams.B.players = JSON.parse(JSON.stringify(state.teams.B.players));
+  base.matchMode = safeMatchMode(state.matchMode);
   return base;
 }
 
@@ -305,8 +414,8 @@ export function startNextGame(state: GameState): GameState {
   const loser = gameWinCheck.winner === 'A' ? 'B' : 'A';
   newState.serving = { team: loser, serverNumber: 2, isFirstServe: true };
 
-  // Keep the match mode, games won, names, etc.
-  newState.events = [];
+  // IMPORTANT: Preserve events and matchStats across game transitions
+  // Events are tagged with game number so they can be filtered by game
   newState.gameHistory = [];
 
   return newState;
@@ -347,4 +456,64 @@ export function getMomentum(state: GameState, lastN: number = 5): {
   }
 
   return { teamAPoints, teamBPoints, dominant, streak };
+}
+
+// ─── Win Probability Heuristic ────────────────────────────────────────────────
+
+/**
+ * Estimate win probability for each team based on:
+ * - Current game score & distance to 11
+ * - Games won in the match
+ * - Scoring momentum
+ *
+ * Returns a value 0–100 for Team A (Team B = 100 – A).
+ */
+export function getWinProbability(state: GameState): number {
+  if (!state?.teams) return 50;
+
+  const scoreA = state.teams.A?.score ?? 0;
+  const scoreB = state.teams.B?.score ?? 0;
+  const gamesA = state.gamesWon?.A ?? 0;
+  const gamesB = state.gamesWon?.B ?? 0;
+
+  // 1. Score-based component (60% weight)
+  const totalScore = scoreA + scoreB;
+  let scoreProbA = 50;
+  if (totalScore > 0) {
+    // Factor in distance to 11 and lead
+    const distA = Math.max(0, 11 - scoreA);
+    const distB = Math.max(0, 11 - scoreB);
+    const totalDist = distA + distB;
+    scoreProbA = totalDist > 0 ? Math.round(((totalDist - distA) / totalDist) * 100) : 50;
+  }
+
+  // 2. Games-won component (25% weight) — only relevant for multi-game matches
+  const mode = safeMatchMode(state.matchMode);
+  const requiredWins = MATCH_MODES[mode].gamesToWin;
+  let gamesProbA = 50;
+  if (requiredWins > 1) {
+    const totalGames = gamesA + gamesB;
+    if (totalGames > 0) {
+      gamesProbA = Math.round((gamesA / totalGames) * 100);
+    }
+  }
+
+  // 3. Momentum component (15% weight)
+  const momentum = getMomentum(state);
+  let momentumProbA = 50;
+  const totalMomentum = momentum.teamAPoints + momentum.teamBPoints;
+  if (totalMomentum > 0) {
+    momentumProbA = Math.round((momentum.teamAPoints / totalMomentum) * 100);
+  }
+
+  // Weighted average
+  const weightedProb = requiredWins > 1
+    ? Math.round(scoreProbA * 0.6 + gamesProbA * 0.25 + momentumProbA * 0.15)
+    : Math.round(scoreProbA * 0.75 + momentumProbA * 0.25);
+
+  // Clamp to 5–95 so it never shows 0% or 100% during an active match
+  if (!state.isMatchOver) {
+    return Math.max(5, Math.min(95, weightedProb));
+  }
+  return weightedProb;
 }

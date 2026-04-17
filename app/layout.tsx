@@ -19,21 +19,8 @@ export const metadata: Metadata = {
   title: 'Kitchen Counter | Pickleball Scoreboard',
   description: 'Premium doubles pickleball scoring system with real-time tracking and analytics',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/kitchen_counter.png',
+    apple: '/kitchen_counter.png',
   },
 }
 
