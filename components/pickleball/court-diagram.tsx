@@ -178,53 +178,70 @@ export function CourtDiagram({ gameState, servingTeam, serverPosition }: CourtDi
 
       {/* ===== Score Call Card ===== */}
       <div
-        className="rounded-[32px] p-6 flex flex-col justify-between"
+        className="relative rounded-[32px] p-6 flex flex-col justify-between overflow-hidden text-center"
         style={{ background: 'var(--kc-surface)' }}
       >
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined text-sm" style={{ color: 'var(--kc-accent)' }}>
-              campaign
-            </span>
-            <span
-              className="font-inter text-[10px] font-bold uppercase tracking-widest"
-              style={{ color: 'var(--kc-text-dim)' }}
-            >
-              SCORE CALL
-            </span>
+        {/* Background */}
+        <div className="absolute inset-0 opacity-20 saturate-50 pointer-events-none">
+          <img
+            className="w-full h-full object-cover"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ8WzCHEjlvJ16dFyDwE27F1kdTAXjbXjzqqeht1nA4g2d8OWWnmMggcE5v9EAKiP_G6RF8P_bmx_WITpu418XYg1l5aWgrhKT2D7AF8nL-Jg2UiH-3AoO8GtctoI0mnPX5Izoexwnq6K7itokPJye1zq3mOubti95kbl1HiI-wyGiOTkwdxxpdbiPmDrHUMcGQ85bJGhNReXNtx2wkd7_j0x3AatPZ13iqA-pMOY9wRfS5a2Mo8j3Swh-tt1tav_bkGsEdljm4AQ"
+            alt=""
+          />
+        </div>
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+        {/* Header */}
+        <div className="relative z-10 flex items-center justify-center gap-3 mb-4">
+          <span
+            className="material-symbols-outlined text-xl"
+            style={{ color: 'var(--kc-accent)' }}
+          >
+            campaign
+          </span>
+          <span
+            className="font-lexend text-sm md:text-base font-extrabold uppercase tracking-[0.2em]"
+            style={{ color: 'var(--kc-text)' }}
+          >
+            Score Call
+          </span>
+        </div>
+
+        {/* CENTERED SCORE */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
+          <div
+            className="text-5xl md:text-6xl font-lexend font-black tracking-tight leading-none"
+            style={{ color: 'var(--kc-text)' }}
+          >
+            {gameState.teams[servingTeam].score}
+            <span className="mx-2" style={{ color: 'var(--kc-text-muted)' }}>:</span>
+            {gameState.teams[servingTeam === 'A' ? 'B' : 'A'].score}
+            <span className="mx-2" style={{ color: 'var(--kc-text-muted)' }}>•</span>
+            {gameState.serving.serverNumber}
           </div>
 
-          <div className="space-y-3">
-            <div
-              className="text-4xl font-lexend font-black tracking-tight"
-              style={{ color: 'var(--kc-text)' }}
-            >
-              {gameState.teams[servingTeam].score}
-              <span style={{ color: 'var(--kc-text-muted)' }}> — </span>
-              {gameState.teams[servingTeam === 'A' ? 'B' : 'A'].score}
-              <span style={{ color: 'var(--kc-text-muted)' }}> — </span>
-              {gameState.serving.serverNumber}
-            </div>
-            <p
-              className="text-xs font-inter"
-              style={{ color: 'var(--kc-text-dim)' }}
-            >
-              Serving team score — Receiving score — Server #
-            </p>
+          {/* Improved label */}
+          <div
+            className="mt-3 text-[10px] font-inter uppercase tracking-wider flex gap-3"
+            style={{ color: 'var(--kc-text-dim)' }}
+          >
+            <span>Serving</span>
+            <span>Receiving</span>
+            <span>Server</span>
           </div>
         </div>
 
         {/* First serve indicator */}
         {gameState.serving.isFirstServe && (
           <div
-            className="mt-4 px-3 py-2 rounded-xl text-center"
+            className="relative z-10 mt-4 px-3 py-2 rounded-xl text-center"
             style={{ background: 'var(--kc-surface-highest)' }}
           >
             <span
               className="text-[10px] font-bold uppercase tracking-widest"
               style={{ color: 'var(--kc-text-dim)' }}
             >
-              ⚡ First serve rule active
+              ⚡ First Serve
             </span>
           </div>
         )}

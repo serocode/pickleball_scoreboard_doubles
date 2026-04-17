@@ -4,6 +4,7 @@ interface ControlPanelProps {
   onScorePoint: () => void;
   onFault: () => void;
   onResetRequest: () => void;
+  onRestartMatch: () => void;
   onNextGame: () => void;
   onUndo: () => void;
   canUndo: boolean;
@@ -15,6 +16,7 @@ export function ControlPanel({
   onScorePoint,
   onFault,
   onResetRequest,
+  onRestartMatch,
   onNextGame,
   onUndo,
   canUndo,
@@ -102,18 +104,32 @@ export function ControlPanel({
       )}
 
       {isMatchWon && (
-        <button
-          onClick={onResetRequest}
-          className="col-span-2 md:col-span-4 h-16 rounded-3xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-95 cursor-pointer animate-fade-in"
-          style={{
-            background: 'linear-gradient(135deg, #f4ffc8 0%, #cffc00 100%)',
-            color: 'var(--kc-on-accent)',
-            boxShadow: '0 0 20px rgba(209, 255, 0, 0.15)',
-          }}
-        >
-          <span className="material-symbols-outlined">replay</span>
-          <span className="font-lexend font-bold text-sm uppercase tracking-widest">NEW MATCH</span>
-        </button>
+        <>
+          <button
+            onClick={onRestartMatch}
+            className="col-span-2 h-16 rounded-3xl flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 cursor-pointer animate-fade-in"
+            style={{
+              background: 'linear-gradient(135deg, #f4ffc8 0%, #cffc00 100%)',
+              color: 'var(--kc-on-accent)',
+              boxShadow: '0 0 20px rgba(209, 255, 0, 0.15)',
+            }}
+          >
+            <span className="material-symbols-outlined text-lg md:text-2xl">replay</span>
+            <span className="font-lexend font-bold text-xs md:text-sm uppercase tracking-widest text-center">RESTART MATCH</span>
+          </button>
+          
+          <button
+            onClick={onResetRequest}
+            className="col-span-2 h-16 rounded-3xl flex items-center justify-center gap-2 md:gap-3 transition-all duration-200 active:scale-95 cursor-pointer animate-fade-in"
+            style={{
+              background: 'var(--kc-surface-highest)',
+              color: 'var(--kc-text)',
+            }}
+          >
+            <span className="material-symbols-outlined text-lg md:text-2xl" style={{ color: 'var(--kc-error)' }}>power_settings_new</span>
+            <span className="font-lexend font-bold text-xs md:text-sm uppercase tracking-widest text-center">NEW MATCH</span>
+          </button>
+        </>
       )}
     </section>
   );
