@@ -87,8 +87,9 @@ export function PickleballDashboard() {
         style={{ background: 'var(--kc-bg)' }}
       >
         <div className="flex items-center gap-4">
+          <img src="/kitchen_counter.png" alt="Logo" className="w-8 h-8 rounded-lg outline outline-1 outline-[var(--kc-outline-dim)]" />
           <h1
-            className="text-2xl font-black italic tracking-widest font-lexend uppercase"
+            className="text-2xl font-black italic tracking-widest font-lexend uppercase hidden sm:block"
             style={{ color: 'var(--kc-accent)' }}
           >
             Kitchen Counter
@@ -109,6 +110,30 @@ export function PickleballDashboard() {
 
       {/* ========== MAIN CONTENT ========== */}
       <main className="mt-20 px-4 max-w-5xl mx-auto">
+        {/* Match Won / Game Won Banners */}
+        {matchWon.isWon ? (
+          <div className="mb-6 rounded-[32px] p-8 text-center animate-fade-in" style={{ background: 'var(--kc-accent-container)', color: 'var(--kc-on-accent)' }}>
+            <span className="material-symbols-outlined text-6xl mb-4">trophy</span>
+            <h2 className="font-lexend font-black text-3xl uppercase tracking-widest mb-2">
+              {matchWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name} WINS THE MATCH!
+            </h2>
+            {gameState.matchMode !== 'casual' && (
+              <p className="font-lexend text-lg opacity-80 uppercase tracking-widest">
+                Final Score: {gameState.gamesWon?.A} — {gameState.gamesWon?.B}
+              </p>
+            )}
+          </div>
+        ) : gameWon.isWon ? (
+          <div className="mb-6 rounded-3xl p-6 text-center animate-fade-in" style={{ background: 'var(--kc-surface-high)', border: '2px solid var(--kc-accent)' }}>
+            <h3 className="font-lexend font-bold text-xl uppercase tracking-widest mb-1" style={{ color: 'var(--kc-accent)' }}>
+              {gameWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name} WINS GAME {gameState.currentGame}
+            </h3>
+            <p className="text-sm font-medium" style={{ color: 'var(--kc-text-dim)' }}>
+              Review the stats or start the next game when you're ready.
+            </p>
+          </div>
+        ) : null}
+
         {/* Game State Chips */}
         <div className="flex flex-wrap items-center gap-2 mb-6 animate-fade-in">
           <span
@@ -140,22 +165,6 @@ export function PickleballDashboard() {
               GAME POINT — {gamePoint.team === 'A' ? gameState.teams.A.name : gameState.teams.B.name}
             </span>
           )}
-          {gameWon.isWon && !matchWon.isWon && (
-            <span
-              className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
-              style={{ background: 'var(--kc-accent-container)', color: 'var(--kc-on-accent)' }}
-            >
-              🏆 GAME WON — {gameWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name}
-            </span>
-          )}
-          {matchWon.isWon && (
-            <span
-              className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest animate-pulse-glow"
-              style={{ background: 'var(--kc-accent)', color: 'var(--kc-on-accent)' }}
-            >
-              👑 MATCH WON — {matchWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name}
-            </span>
-          )}
           {momentum.streak.team && momentum.streak.count >= 3 && !gameWon.isWon && !matchWon.isWon && (
             <span
               className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
@@ -174,11 +183,13 @@ export function PickleballDashboard() {
                 gameState={gameState}
                 servingTeam={servingTeam}
                 lastAction={lastAction}
+                serverPosition={serverPosition}
               />
               <ControlPanel
                 onScorePoint={scorePoint}
                 onFault={recordFault}
                 onResetRequest={handleResetRequest}
+                onRestartMatch={resetGameKeepSettings}
                 onNextGame={startNextGame}
                 onUndo={undo}
                 canUndo={canUndo}
