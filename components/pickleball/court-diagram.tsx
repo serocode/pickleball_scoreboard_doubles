@@ -1,7 +1,6 @@
 'use client';
 
 import { GameState } from '@/lib/pickleball-state';
-import { Users } from 'lucide-react';
 
 interface CourtDiagramProps {
   gameState: GameState | null;
@@ -11,134 +10,225 @@ interface CourtDiagramProps {
 
 export function CourtDiagram({ gameState, servingTeam, serverPosition }: CourtDiagramProps) {
   if (!gameState) {
-    return <div className="h-64 animate-pulse bg-muted rounded-lg" />;
+    return (
+      <div
+        className="h-48 rounded-[32px] animate-pulse"
+        style={{ background: 'var(--kc-surface)' }}
+      />
+    );
   }
 
   const teamA = gameState.teams.A;
   const teamB = gameState.teams.B;
-
-  const isServerRight = serverPosition === 'right';
-  const serverPlayerName =
-    gameState.serving.serverNumber === 1
-      ? isServerRight
-        ? servingTeam === 'A'
-          ? teamA.players[1]
-          : teamB.players[1]
-        : servingTeam === 'A'
-          ? teamA.players[0]
-          : teamB.players[0]
-      : isServerRight
-        ? servingTeam === 'A'
-          ? teamA.players[1]
-          : teamB.players[1]
-        : servingTeam === 'A'
-          ? teamA.players[0]
-          : teamB.players[0];
+  const servingTeamData = servingTeam === 'A' ? teamA : teamB;
+  const receivingTeamData = servingTeam === 'A' ? teamB : teamA;
 
   return (
-    <div className="rounded-xl bg-card p-8 shadow-lg">
-      {/* Court Title */}
-      <h2 className="text-center text-xl font-bold mb-8 text-foreground">Court Positions</h2>
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ===== Court Position Card ===== */}
+      <div
+        className="md:col-span-2 rounded-[32px] p-6 relative overflow-hidden"
+        style={{ background: 'var(--kc-surface)' }}
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <span className="material-symbols-outlined text-sm" style={{ color: 'var(--kc-accent)' }}>
+            sports_tennis
+          </span>
+          <span
+            className="font-inter text-[10px] font-bold uppercase tracking-widest"
+            style={{ color: 'var(--kc-text-dim)' }}
+          >
+            COURT POSITIONS
+          </span>
+        </div>
 
-      {/* Court Visual */}
-      <div className="space-y-8">
-        {/* Team A (Top) */}
-        <div className="rounded-lg border-2 border-primary/30 bg-gradient-to-b from-primary/10 to-transparent p-6">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Team A</h3>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Team A Left */}
-            <div
-              className={`rounded-lg border-2 p-4 text-center transition-all ${
-                servingTeam === 'A' && !isServerRight
-                  ? 'border-primary bg-primary/20 shadow-lg'
-                  : 'border-muted-foreground/30 bg-muted/50'
-              }`}
-            >
-              <Users className="mx-auto mb-2 h-8 w-8" />
-              <div className="text-sm font-medium line-clamp-1">{teamA.players[0].name}</div>
-              <div className="text-xs text-muted-foreground mt-1">Left</div>
-              {servingTeam === 'A' && !isServerRight && (
-                <div className="mt-2 inline-block rounded bg-primary px-2 py-1 text-xs font-bold text-primary-foreground">
-                  Server
-                </div>
-              )}
+        {/* Mini Court Visualization */}
+        <div className="flex flex-col gap-3">
+          {/* Serving Team Side */}
+          <div
+            className="rounded-2xl p-4 flex items-center justify-between"
+            style={{ background: 'var(--kc-surface-mid)' }}
+          >
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                {serverPosition === 'left' && (
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: 'var(--kc-accent)' }}
+                  />
+                )}
+                <span
+                  className="text-sm font-inter font-medium truncate"
+                  style={{ color: 'var(--kc-text)' }}
+                >
+                  {servingTeamData.players[0].name}
+                </span>
+              </div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: 'var(--kc-text-muted)' }}
+              >
+                LEFT
+              </span>
             </div>
 
-            {/* Team A Right */}
             <div
-              className={`rounded-lg border-2 p-4 text-center transition-all ${
-                servingTeam === 'A' && isServerRight
-                  ? 'border-primary bg-primary/20 shadow-lg'
-                  : 'border-muted-foreground/30 bg-muted/50'
-              }`}
+              className="w-px h-10 mx-4"
+              style={{ background: 'var(--kc-surface-bright)' }}
+            />
+
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                {serverPosition === 'right' && (
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: 'var(--kc-accent)' }}
+                  />
+                )}
+                <span
+                  className="text-sm font-inter font-medium truncate"
+                  style={{ color: 'var(--kc-text)' }}
+                >
+                  {servingTeamData.players[1].name}
+                </span>
+              </div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: 'var(--kc-text-muted)' }}
+              >
+                RIGHT
+              </span>
+            </div>
+          </div>
+
+          {/* Net indicator */}
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex-1 h-px" style={{ background: 'var(--kc-surface-bright)' }} />
+            <span
+              className="text-[10px] font-lexend font-bold uppercase tracking-widest"
+              style={{ color: 'var(--kc-text-muted)' }}
             >
-              <Users className="mx-auto mb-2 h-8 w-8" />
-              <div className="text-sm font-medium line-clamp-1">{teamA.players[1].name}</div>
-              <div className="text-xs text-muted-foreground mt-1">Right</div>
-              {servingTeam === 'A' && isServerRight && (
-                <div className="mt-2 inline-block rounded bg-primary px-2 py-1 text-xs font-bold text-primary-foreground">
-                  Server
-                </div>
-              )}
+              NET
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'var(--kc-surface-bright)' }} />
+          </div>
+
+          {/* Receiving Team Side */}
+          <div
+            className="rounded-2xl p-4 flex items-center justify-between"
+            style={{ background: 'var(--kc-surface-mid)' }}
+          >
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span
+                  className="text-sm font-inter font-medium truncate"
+                  style={{ color: 'var(--kc-text-dim)' }}
+                >
+                  {receivingTeamData.players[0].name}
+                </span>
+              </div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: 'var(--kc-text-muted)' }}
+              >
+                LEFT
+              </span>
+            </div>
+
+            <div
+              className="w-px h-10 mx-4"
+              style={{ background: 'var(--kc-surface-bright)' }}
+            />
+
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span
+                  className="text-sm font-inter font-medium truncate"
+                  style={{ color: 'var(--kc-text-dim)' }}
+                >
+                  {receivingTeamData.players[1].name}
+                </span>
+              </div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: 'var(--kc-text-muted)' }}
+              >
+                RIGHT
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 h-0.5 bg-border" />
-          <span className="text-sm font-semibold text-muted-foreground">NET</span>
-          <div className="flex-1 h-0.5 bg-border" />
-        </div>
-
-        {/* Team B (Bottom) */}
-        <div className="rounded-lg border-2 border-secondary/30 bg-gradient-to-b from-secondary/10 to-transparent p-6">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Team B</h3>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Team B Left */}
-            <div
-              className={`rounded-lg border-2 p-4 text-center transition-all ${
-                servingTeam === 'B' && !isServerRight
-                  ? 'border-secondary bg-secondary/20 shadow-lg'
-                  : 'border-muted-foreground/30 bg-muted/50'
-              }`}
-            >
-              <Users className="mx-auto mb-2 h-8 w-8" />
-              <div className="text-sm font-medium line-clamp-1">{teamB.players[0].name}</div>
-              <div className="text-xs text-muted-foreground mt-1">Left</div>
-              {servingTeam === 'B' && !isServerRight && (
-                <div className="mt-2 inline-block rounded bg-secondary px-2 py-1 text-xs font-bold text-secondary-foreground">
-                  Server
-                </div>
-              )}
-            </div>
-
-            {/* Team B Right */}
-            <div
-              className={`rounded-lg border-2 p-4 text-center transition-all ${
-                servingTeam === 'B' && isServerRight
-                  ? 'border-secondary bg-secondary/20 shadow-lg'
-                  : 'border-muted-foreground/30 bg-muted/50'
-              }`}
-            >
-              <Users className="mx-auto mb-2 h-8 w-8" />
-              <div className="text-sm font-medium line-clamp-1">{teamB.players[1].name}</div>
-              <div className="text-xs text-muted-foreground mt-1">Right</div>
-              {servingTeam === 'B' && isServerRight && (
-                <div className="mt-2 inline-block rounded bg-secondary px-2 py-1 text-xs font-bold text-secondary-foreground">
-                  Server
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Team labels */}
+        <div className="mt-4 flex justify-between">
+          <span
+            className="text-[10px] font-lexend font-bold uppercase tracking-widest"
+            style={{ color: 'var(--kc-accent)' }}
+          >
+            {servingTeamData.name} (Serving)
+          </span>
+          <span
+            className="text-[10px] font-lexend font-bold uppercase tracking-widest"
+            style={{ color: 'var(--kc-text-dim)' }}
+          >
+            {receivingTeamData.name} (Receiving)
+          </span>
         </div>
       </div>
-    </div>
+
+      {/* ===== Score Call Card ===== */}
+      <div
+        className="rounded-[32px] p-6 flex flex-col justify-between"
+        style={{ background: 'var(--kc-surface)' }}
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="material-symbols-outlined text-sm" style={{ color: 'var(--kc-accent)' }}>
+              campaign
+            </span>
+            <span
+              className="font-inter text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: 'var(--kc-text-dim)' }}
+            >
+              SCORE CALL
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <div
+              className="text-4xl font-lexend font-black tracking-tight"
+              style={{ color: 'var(--kc-text)' }}
+            >
+              {gameState.teams[servingTeam].score}
+              <span style={{ color: 'var(--kc-text-muted)' }}> — </span>
+              {gameState.teams[servingTeam === 'A' ? 'B' : 'A'].score}
+              <span style={{ color: 'var(--kc-text-muted)' }}> — </span>
+              {gameState.serving.serverNumber}
+            </div>
+            <p
+              className="text-xs font-inter"
+              style={{ color: 'var(--kc-text-dim)' }}
+            >
+              Serving team score — Receiving score — Server #
+            </p>
+          </div>
+        </div>
+
+        {/* First serve indicator */}
+        {gameState.serving.isFirstServe && (
+          <div
+            className="mt-4 px-3 py-2 rounded-xl text-center"
+            style={{ background: 'var(--kc-surface-highest)' }}
+          >
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: 'var(--kc-text-dim)' }}
+            >
+              ⚡ First serve rule active
+            </span>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

@@ -1,8 +1,8 @@
 import { PickleballDashboard } from '@/components/pickleball/dashboard';
 
 export const metadata = {
-  title: 'Pickleball Scorer',
-  description: 'Interactive doubles pickleball scoring system with official rules',
+  title: 'KINETIC COURT | Live Scoreboard',
+  description: 'Premium doubles pickleball scoring system with real-time tracking and kinetic court visualization',
 };
 
 export default function Home() {

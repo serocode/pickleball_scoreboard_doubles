@@ -1,6 +1,7 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+// Server indicator is now integrated directly into ScoreDisplay component.
+// This file is kept for backward compatibility but the visual is rendered inline.
 
 interface ServerIndicatorProps {
   serverNumber: 1 | 2;
@@ -17,18 +18,27 @@ export function ServerIndicator({
 }: ServerIndicatorProps) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-3">
-      <Badge variant="default" className="text-base px-4 py-2">
+      <div
+        className="px-4 py-2 rounded-full font-lexend text-sm font-bold uppercase tracking-widest"
+        style={{ background: 'var(--kc-accent)', color: 'var(--kc-on-accent)' }}
+      >
         Server {serverNumber}
-      </Badge>
+      </div>
 
-      <Badge variant="secondary" className="text-base px-4 py-2">
-        {servingTeam === 'A' ? 'Team A' : 'Team B'} - {serverPosition === 'right' ? 'Right' : 'Left'} Side
-      </Badge>
+      <div
+        className="px-4 py-2 rounded-full font-inter text-sm"
+        style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text)' }}
+      >
+        {servingTeam === 'A' ? 'Team A' : 'Team B'} — {serverPosition === 'right' ? 'Right' : 'Left'} Side
+      </div>
 
       {isFirstServe && (
-        <Badge variant="outline" className="text-base px-4 py-2">
-          First Serve Only
-        </Badge>
+        <div
+          className="px-4 py-2 rounded-full font-inter text-sm"
+          style={{ background: 'var(--kc-surface-high)', color: 'var(--kc-text-dim)' }}
+        >
+          ⚡ First Serve Only
+        </div>
       )}
     </div>
   );

@@ -1,14 +1,23 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter, Lexend } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const lexend = Lexend({
+  subsets: ['latin'],
+  variable: '--font-lexend',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'Pickleball Scorer',
-  description: 'Interactive doubles pickleball scoring system with official rules and real-time game tracking',
+  title: 'KINETIC COURT | Pickleball Scoreboard',
+  description: 'Premium doubles pickleball scoring system with real-time tracking, analytics, and kinetic court visualization',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -35,7 +44,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="en" className={`dark ${inter.variable} ${lexend.variable}`}>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}

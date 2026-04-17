@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Player } from '@/lib/pickleball-state';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Player, MatchMode } from '@/lib/pickleball-state';
 
 interface PlayerSetupProps {
   open: boolean;
@@ -13,11 +12,13 @@ interface PlayerSetupProps {
   teamBName: string;
   teamAPlayers: [Player, Player];
   teamBPlayers: [Player, Player];
+  currentMatchMode: MatchMode;
   onSave: (
     teamAName: string,
     teamBName: string,
     teamAPlayers: [Player, Player],
-    teamBPlayers: [Player, Player]
+    teamBPlayers: [Player, Player],
+    matchMode: MatchMode
   ) => void;
 }
 
@@ -28,6 +29,7 @@ export function PlayerSetupModal({
   teamBName,
   teamAPlayers,
   teamBPlayers,
+  currentMatchMode,
   onSave,
 }: PlayerSetupProps) {
   const [formData, setFormData] = useState({
@@ -41,6 +43,7 @@ export function PlayerSetupModal({
     teamA2Photo: teamAPlayers[1].photo || '',
     teamB1Photo: teamBPlayers[0].photo || '',
     teamB2Photo: teamBPlayers[1].photo || '',
+    matchMode: currentMatchMode,
   });
 
   const handleImageUpload = async (
@@ -71,124 +74,207 @@ export function PlayerSetupModal({
       { name: formData.teamB2Name, photo: formData.teamB2Photo || undefined },
     ];
 
-    onSave(formData.teamAName, formData.teamBName, teamAPlayers, teamBPlayers);
+    onSave(formData.teamAName, formData.teamBName, teamAPlayers, teamBPlayers, formData.matchMode);
     onOpenChange(false);
   };
 
+  const inputStyle: React.CSSProperties = {
+    background: 'var(--kc-surface-highest)',
+    color: 'var(--kc-text)',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    width: '100%',
+    fontSize: '14px',
+    fontFamily: 'Inter, sans-serif',
+    outline: 'none',
+  };
+
+  const teams = [
+    {
+      label: 'TEAM 1',
+      nameField: 'teamAName' as const,
+      accentColor: 'var(--kc-accent)',
+      players: [
+        { key: 'teamA1', label: 'Player 1 (Left)', nameField: 'teamA1Name', photoField: 'teamA1Photo' },
+        { key: 'teamA2', label: 'Player 2 (Right)', nameField: 'teamA2Name', photoField: 'teamA2Photo' },
+      ],
+    },
+    {
+      label: 'TEAM 2',
+      nameField: 'teamBName' as const,
+      accentColor: 'var(--kc-secondary-text)',
+      players: [
+        { key: 'teamB1', label: 'Player 1 (Left)', nameField: 'teamB1Name', photoField: 'teamB1Photo' },
+        { key: 'teamB2', label: 'Player 2 (Right)', nameField: 'teamB2Name', photoField: 'teamB2Photo' },
+      ],
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        style={{
+          background: 'var(--kc-surface-mid)',
+          border: 'none',
+          borderRadius: '32px',
+        }}
+      >
         <DialogHeader>
-          <DialogTitle>Setup Game Players</DialogTitle>
+          <DialogTitle
+            className="font-lexend font-bold text-xl uppercase tracking-widest"
+            style={{ color: 'var(--kc-text)' }}
+          >
+            Match Setup
+          </DialogTitle>
+          <DialogDescription
+            className="text-sm"
+            style={{ color: 'var(--kc-text-dim)' }}
+          >
+            Configure team names, player names, and photos for this match.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Team A Section */}
+        <div className="space-y-8 mt-4">
+          {/* Match Mode Selector */}
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Team A Name</label>
-              <Input
-                value={formData.teamAName}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, teamAName: e.target.value }))
-                }
-                placeholder="Enter team name"
-              />
-            </div>
-
-            {/* Team A Players */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <span
+              className="font-lexend text-[10px] uppercase tracking-widest font-bold"
+              style={{ color: 'var(--kc-text-dim)' }}
+            >
+              Match Settings
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {[
-                { key: 'teamA1', label: 'Player 1 (Left)', nameField: 'teamA1Name', photoField: 'teamA1Photo' },
-                { key: 'teamA2', label: 'Player 2 (Right)', nameField: 'teamA2Name', photoField: 'teamA2Photo' },
-              ].map(({ key, label, nameField, photoField }) => (
-                <div key={key} className="space-y-2 p-4 border rounded-lg">
-                  <label className="block text-sm font-medium">{label}</label>
-                  <Input
-                    value={formData[nameField as keyof typeof formData] as string}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, [nameField]: e.target.value }))
-                    }
-                    placeholder="Player name"
-                    className="mb-2"
-                  />
-                  <div className="space-y-2">
-                    <label className="block text-xs text-muted-foreground">Photo</label>
-                    {formData[photoField as keyof typeof formData] && (
-                      <img
-                        src={formData[photoField as keyof typeof formData] as string}
-                        alt={label}
-                        className="w-full h-32 object-cover rounded"
-                      />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, photoField)}
-                      className="block w-full text-sm"
-                    />
+                { id: 'casual', label: 'Casual', desc: '1 game to 11' },
+                { id: 'standard', label: 'Standard', desc: 'Best of 3 to 11' },
+                { id: 'long', label: 'Long', desc: 'Best of 5 to 11' },
+              ].map((mode) => (
+                <button
+                  key={mode.id}
+                  onClick={() => setFormData((prev) => ({ ...prev, matchMode: mode.id as MatchMode }))}
+                  className={`p-4 rounded-xl text-left transition-all border-2 ${formData.matchMode === mode.id
+                      ? 'border-kc-accent bg-kc-surface-high'
+                      : 'border-transparent bg-kc-surface-high opacity-70 hover:opacity-100'
+                    }`}
+                >
+                  <div className={`font-lexend font-bold text-sm ${formData.matchMode === mode.id ? 'text-kc-accent' : 'text-kc-text'}`}>
+                    {mode.label}
                   </div>
-                </div>
+                  <div className="font-inter text-xs mt-1 text-kc-text-dim">
+                    {mode.desc}
+                  </div>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Team B Section */}
-          <div className="space-y-4 border-t pt-6">
-            <div>
-              <label className="block text-sm font-medium mb-1">Team B Name</label>
-              <Input
-                value={formData.teamBName}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, teamBName: e.target.value }))
-                }
-                placeholder="Enter team name"
-              />
-            </div>
+          {teams.map((team) => (
+            <div key={team.label} className="space-y-4">
+              {/* Team Label */}
+              <span
+                className="font-lexend text-[10px] uppercase tracking-widest font-bold"
+                style={{ color: team.accentColor }}
+              >
+                {team.label}
+              </span>
 
-            {/* Team B Players */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { key: 'teamB1', label: 'Player 1 (Left)', nameField: 'teamB1Name', photoField: 'teamB1Photo' },
-                { key: 'teamB2', label: 'Player 2 (Right)', nameField: 'teamB2Name', photoField: 'teamB2Photo' },
-              ].map(({ key, label, nameField, photoField }) => (
-                <div key={key} className="space-y-2 p-4 border rounded-lg">
-                  <label className="block text-sm font-medium">{label}</label>
-                  <Input
-                    value={formData[nameField as keyof typeof formData] as string}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, [nameField]: e.target.value }))
-                    }
-                    placeholder="Player name"
-                    className="mb-2"
-                  />
-                  <div className="space-y-2">
-                    <label className="block text-xs text-muted-foreground">Photo</label>
-                    {formData[photoField as keyof typeof formData] && (
-                      <img
-                        src={formData[photoField as keyof typeof formData] as string}
-                        alt={label}
-                        className="w-full h-32 object-cover rounded"
-                      />
-                    )}
+              {/* Team Name */}
+              <div>
+                <label
+                  className="block text-[10px] font-inter font-bold uppercase tracking-widest mb-2"
+                  style={{ color: 'var(--kc-text-dim)' }}
+                >
+                  Team Name
+                </label>
+                <input
+                  value={formData[team.nameField]}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, [team.nameField]: e.target.value }))
+                  }
+                  onFocus={(e) => e.target.select()}
+                  placeholder="Enter team name"
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Players */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {team.players.map(({ key, label, nameField, photoField }) => (
+                  <div
+                    key={key}
+                    className="rounded-2xl p-4 space-y-3"
+                    style={{ background: 'var(--kc-surface-high)' }}
+                  >
+                    <label
+                      className="block text-[10px] font-inter font-bold uppercase tracking-widest"
+                      style={{ color: 'var(--kc-text-dim)' }}
+                    >
+                      {label}
+                    </label>
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, photoField)}
-                      className="block w-full text-sm"
+                      value={formData[nameField as keyof typeof formData] as string}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, [nameField]: e.target.value }))
+                      }
+                      placeholder="Player name"
+                      style={inputStyle}
                     />
+                    <div className="space-y-2">
+                      <label
+                        className="block text-[10px] font-inter uppercase tracking-widest"
+                        style={{ color: 'var(--kc-text-muted)' }}
+                      >
+                        Photo
+                      </label>
+                      {formData[photoField as keyof typeof formData] && (
+                        <img
+                          src={formData[photoField as keyof typeof formData] as string}
+                          alt={label}
+                          className="w-full h-32 object-cover rounded-xl"
+                        />
+                      )}
+                      <label
+                        className="flex items-center justify-center gap-2 py-3 rounded-xl cursor-pointer transition-colors"
+                        style={{
+                          background: 'var(--kc-surface-highest)',
+                          color: 'var(--kc-text-dim)',
+                          border: '1px dashed var(--kc-outline)',
+                        }}
+                      >
+                        <span className="material-symbols-outlined text-sm">add_photo_alternate</span>
+                        <span className="text-xs font-inter">Upload Photo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, photoField)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="mt-8 gap-3">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="px-6 py-3 rounded-full font-inter font-semibold text-sm transition-all active:scale-95 cursor-pointer"
+            style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text-dim)' }}
+          >
             Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Players</Button>
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-6 py-3 rounded-full font-lexend font-bold text-sm uppercase tracking-widest kinetic-gradient transition-all active:scale-95 cursor-pointer"
+            style={{ color: 'var(--kc-on-accent)' }}
+          >
+            Save Players
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,90 +1,120 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { RotateCcw, Undo2, Check, X } from 'lucide-react';
-
 interface ControlPanelProps {
   onScorePoint: () => void;
   onFault: () => void;
-  onReset: () => void;
+  onResetRequest: () => void;
+  onNextGame: () => void;
   onUndo: () => void;
   canUndo: boolean;
+  isGameWon: boolean;
+  isMatchWon: boolean;
 }
 
 export function ControlPanel({
   onScorePoint,
   onFault,
-  onReset,
+  onResetRequest,
+  onNextGame,
   onUndo,
   canUndo,
+  isGameWon,
+  isMatchWon,
 }: ControlPanelProps) {
   return (
-    <div className="rounded-xl bg-card p-8 shadow-lg">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {/* Score Point Button */}
-        <Button
-          onClick={onScorePoint}
-          className="h-auto flex-col items-center justify-center gap-2 py-6 text-base font-semibold"
-          size="lg"
-        >
-          <Check className="h-6 w-6" />
-          <span className="text-sm">Point</span>
-        </Button>
+    <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* ===== POINT BUTTON — Primary CTA ===== */}
+      <button
+        onClick={onScorePoint}
+        disabled={isGameWon}
+        className={`col-span-2 md:col-span-2 h-24 rounded-3xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-95 cursor-pointer ${
+          isGameWon ? 'opacity-40 cursor-not-allowed' : ''
+        }`}
+        style={{
+          background: 'linear-gradient(135deg, #f4ffc8 0%, #cffc00 100%)',
+          color: 'var(--kc-on-accent)',
+          boxShadow: isGameWon ? 'none' : '0 0 20px rgba(209, 255, 0, 0.15)',
+        }}
+      >
+        <span className="material-symbols-outlined font-black text-3xl">add_circle</span>
+        <span className="font-lexend font-extrabold text-2xl uppercase tracking-widest">POINT</span>
+      </button>
 
-        {/* Fault Button */}
-        <Button
-          onClick={onFault}
-          variant="destructive"
-          className="h-auto flex-col items-center justify-center gap-2 py-6 text-base font-semibold"
-          size="lg"
+      {/* ===== SIDE OUT / FAULT BUTTON ===== */}
+      <button
+        onClick={onFault}
+        disabled={isGameWon}
+        className={`h-24 rounded-3xl flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 cursor-pointer ${
+          isGameWon ? 'opacity-40 cursor-not-allowed' : ''
+        }`}
+        style={{
+          background: 'var(--kc-surface-highest)',
+          color: 'var(--kc-text)',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ color: 'var(--kc-accent)' }}>
+          swap_horiz
+        </span>
+        <span
+          className="font-inter font-bold text-[10px] uppercase tracking-widest"
+          style={{ color: 'var(--kc-text-dim)' }}
         >
-          <X className="h-6 w-6" />
-          <span className="text-sm">Fault</span>
-        </Button>
+          SIDE OUT
+        </span>
+      </button>
 
-        {/* Undo Button */}
-        <Button
-          onClick={onUndo}
-          variant="outline"
-          disabled={!canUndo}
-          className="h-auto flex-col items-center justify-center gap-2 py-6 text-base font-semibold"
-          size="lg"
+      {/* ===== UNDO BUTTON ===== */}
+      <button
+        onClick={onUndo}
+        disabled={!canUndo}
+        className={`h-24 rounded-3xl flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 cursor-pointer ${
+          !canUndo ? 'opacity-30 cursor-not-allowed' : ''
+        }`}
+        style={{
+          background: 'var(--kc-surface-highest)',
+          color: 'var(--kc-text)',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ color: 'var(--kc-error)' }}>
+          undo
+        </span>
+        <span
+          className="font-inter font-bold text-[10px] uppercase tracking-widest"
+          style={{ color: 'var(--kc-text-dim)' }}
         >
-          <Undo2 className="h-6 w-6" />
-          <span className="text-sm">Undo</span>
-        </Button>
+          UNDO LAST
+        </span>
+      </button>
 
-        {/* Reset Button */}
-        <Button
-          onClick={onReset}
-          variant="secondary"
-          className="h-auto flex-col items-center justify-center gap-2 py-6 text-base font-semibold"
-          size="lg"
+      {/* ===== NEXT GAME / NEW GAME ===== */}
+      {isGameWon && !isMatchWon && (
+        <button
+          onClick={onNextGame}
+          className="col-span-2 md:col-span-4 h-16 rounded-3xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-95 cursor-pointer animate-fade-in"
+          style={{
+            background: 'var(--kc-surface-highest)',
+            color: 'var(--kc-accent)',
+          }}
         >
-          <RotateCcw className="h-6 w-6" />
-          <span className="text-sm">Reset</span>
-        </Button>
-      </div>
+          <span className="material-symbols-outlined">arrow_forward</span>
+          <span className="font-lexend font-bold text-sm uppercase tracking-widest">NEXT GAME</span>
+        </button>
+      )}
 
-      {/* Action Descriptions */}
-      <div className="mt-6 grid grid-cols-2 gap-3 text-xs text-muted-foreground sm:grid-cols-4">
-        <div className="text-center">
-          <p className="font-semibold">Award Point</p>
-          <p>to serving team</p>
-        </div>
-        <div className="text-center">
-          <p className="font-semibold">Record Fault</p>
-          <p>server or side-out</p>
-        </div>
-        <div className="text-center">
-          <p className="font-semibold">Undo</p>
-          <p>last action</p>
-        </div>
-        <div className="text-center">
-          <p className="font-semibold">Reset</p>
-          <p>start new game</p>
-        </div>
-      </div>
-    </div>
+      {isMatchWon && (
+        <button
+          onClick={onResetRequest}
+          className="col-span-2 md:col-span-4 h-16 rounded-3xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-95 cursor-pointer animate-fade-in"
+          style={{
+            background: 'linear-gradient(135deg, #f4ffc8 0%, #cffc00 100%)',
+            color: 'var(--kc-on-accent)',
+            boxShadow: '0 0 20px rgba(209, 255, 0, 0.15)',
+          }}
+        >
+          <span className="material-symbols-outlined">replay</span>
+          <span className="font-lexend font-bold text-sm uppercase tracking-widest">NEW MATCH</span>
+        </button>
+      )}
+    </section>
   );
 }
