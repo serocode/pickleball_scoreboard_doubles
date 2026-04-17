@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { GameEvent, GameState } from '@/lib/pickleball-state';
 
 interface HistoryViewProps {
@@ -39,7 +40,21 @@ function getEventLabel(type: GameEvent['type']): string {
 }
 
 export function HistoryView({ events, gameState }: HistoryViewProps) {
-  const reversedEvents = [...events].reverse();
+  // Derive unique game numbers from events
+  const gameNumbers = [...new Set(events.map(e => e.game ?? 1))].sort((a, b) => a - b);
+  const [filterGame, setFilterGame] = useState<number | 'all'>('all');
+
+  const filteredEvents = filterGame === 'all'
+    ? events
+    : events.filter(e => (e.game ?? 1) === filterGame);
+
+  const reversedEvents = [...filteredEvents].reverse();
+
+  // Event counts per game for the filter badges
+  const eventsPerGame = gameNumbers.reduce<Record<number, number>>((acc, g) => {
+    acc[g] = events.filter(e => (e.game ?? 1) === g).length;
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-4">
@@ -50,12 +65,41 @@ export function HistoryView({ events, gameState }: HistoryViewProps) {
         </h3>
         <div className="h-px grow" style={{ background: 'var(--kc-outline-dim)' }} />
         <span className="text-[10px]" style={{ color: 'var(--kc-text-dim)' }}>
-          {events.length} events
+          {filteredEvents.length} events
         </span>
       </div>
 
+      {/* Game Filter Tabs — only show when there are multiple games */}
+      {gameNumbers.length > 1 && (
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setFilterGame('all')}
+            className="px-3 py-1.5 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+            style={{
+              background: filterGame === 'all' ? 'var(--kc-accent)' : 'var(--kc-surface-highest)',
+              color: filterGame === 'all' ? 'var(--kc-on-accent)' : 'var(--kc-text-dim)',
+            }}
+          >
+            All ({events.length})
+          </button>
+          {gameNumbers.map(g => (
+            <button
+              key={g}
+              onClick={() => setFilterGame(g)}
+              className="px-3 py-1.5 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+              style={{
+                background: filterGame === g ? 'var(--kc-accent)' : 'var(--kc-surface-highest)',
+                color: filterGame === g ? 'var(--kc-on-accent)' : 'var(--kc-text-dim)',
+              }}
+            >
+              Game {g} ({eventsPerGame[g] ?? 0})
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Empty State */}
-      {events.length === 0 && (
+      {filteredEvents.length === 0 && (
         <div
           className="rounded-[32px] p-12 text-center"
           style={{ background: 'var(--kc-surface)' }}
@@ -81,10 +125,11 @@ export function HistoryView({ events, gameState }: HistoryViewProps) {
           const teamName = event.team === 'A' ? gameState.teams.A.name : gameState.teams.B.name;
           const isPoint = event.type === 'point';
           const isSideout = event.type === 'sideout';
+          const gameNum = event.game ?? 1;
 
           return (
             <div
-              key={index}
+              key={event.id || index}
               className="rounded-2xl p-4 flex items-center justify-between animate-slide-in-right"
               style={{
                 background: isPoint ? 'var(--kc-surface-mid)' : 'rgba(0, 0, 0, 0.3)',
@@ -121,7 +166,7 @@ export function HistoryView({ events, gameState }: HistoryViewProps) {
                   </p>
                   <p className="text-[10px]" style={{ color: 'var(--kc-text-dim)' }}>
                     {event.type === 'point'
-                      ? `Server ${event.serverAfter.serverNumber} scored`
+                      ? `Server ${event.server ?? event.serverAfter.serverNumber} scored`
                       : event.type === 'sideout'
                         ? 'Serve transferred to other team'
                         : `Server ${event.serverAfter.serverNumber} next`}
@@ -129,14 +174,26 @@ export function HistoryView({ events, gameState }: HistoryViewProps) {
                 </div>
               </div>
 
-              {/* Score at this point */}
-              <div className="text-right">
-                <p className="text-lg font-lexend font-black tracking-tighter" style={{ color: 'var(--kc-text)' }}>
-                  {String(event.scoreAfter.A).padStart(2, '0')} - {String(event.scoreAfter.B).padStart(2, '0')}
-                </p>
-                <p className="text-[10px]" style={{ color: 'var(--kc-text-dim)' }}>
-                  {formatTime(event.timestamp)}
-                </p>
+              {/* Score + Game Badge */}
+              <div className="text-right flex items-center gap-3">
+                {/* Game badge */}
+                {gameNumbers.length > 1 && (
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                    style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text-dim)' }}
+                  >
+                    G{gameNum}
+                  </span>
+                )}
+                <div>
+                  {/* Score call in X-Y-Z format */}
+                  <p className="text-lg font-lexend font-black tracking-tighter" style={{ color: 'var(--kc-text)' }}>
+                    {event.score || `${String(event.scoreAfter.A).padStart(2, '0')}-${String(event.scoreAfter.B).padStart(2, '0')}`}
+                  </p>
+                  <p className="text-[10px]" style={{ color: 'var(--kc-text-dim)' }}>
+                    {formatTime(event.timestamp)}
+                  </p>
+                </div>
               </div>
             </div>
           );

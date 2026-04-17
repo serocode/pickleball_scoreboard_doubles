@@ -4,9 +4,10 @@ interface ConfirmResetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  onConfirmKeepSettings: () => void;
 }
 
-export function ConfirmResetDialog({ open, onOpenChange, onConfirm }: ConfirmResetDialogProps) {
+export function ConfirmResetDialog({ open, onOpenChange, onConfirm, onConfirmKeepSettings }: ConfirmResetDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -32,23 +33,38 @@ export function ConfirmResetDialog({ open, onOpenChange, onConfirm }: ConfirmRes
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="mt-8 gap-3 sm:justify-start">
+        <DialogFooter className="mt-8 gap-3 sm:justify-start flex-col sm:flex-col">
+          {/* Restart with same settings */}
           <button
-            onClick={() => onOpenChange(false)}
-            className="px-6 py-3 rounded-full font-inter font-semibold text-sm transition-all active:scale-95 cursor-pointer"
-            style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text)' }}
+            onClick={() => {
+              onConfirmKeepSettings();
+              onOpenChange(false);
+            }}
+            className="w-full px-6 py-3 rounded-full font-lexend font-bold text-sm uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+            style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-accent)' }}
           >
-            Cancel
+            Restart with Same Settings
           </button>
+
+          {/* Full reset */}
           <button
             onClick={() => {
               onConfirm();
               onOpenChange(false);
             }}
-            className="px-6 py-3 rounded-full font-lexend font-bold text-sm uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+            className="w-full px-6 py-3 rounded-full font-lexend font-bold text-sm uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
             style={{ background: 'var(--kc-error)', color: 'var(--kc-bg)' }}
           >
-            Reset Match
+            Full Reset
+          </button>
+
+          {/* Cancel */}
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-full px-6 py-3 rounded-full font-inter font-semibold text-sm transition-all active:scale-95 cursor-pointer"
+            style={{ background: 'transparent', color: 'var(--kc-text-dim)', border: '1px solid var(--kc-outline-dim)' }}
+          >
+            Cancel
           </button>
         </DialogFooter>
       </DialogContent>
