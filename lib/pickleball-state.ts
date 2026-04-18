@@ -173,9 +173,7 @@ export function scorePoint(state: GameState): GameState {
   const newState = JSON.parse(JSON.stringify(state)) as GameState;
   newState.gameHistory = [JSON.parse(JSON.stringify(state))];
   newState.isMatchStarted = true;
-  // Ensure matchMode is always valid after deserialization
   newState.matchMode = safeMatchMode(newState.matchMode);
-  // Ensure matchStats after deserialization
   if (!newState.matchStats) {
     newState.matchStats = { A: { ...EMPTY_MATCH_STATS }, B: { ...EMPTY_MATCH_STATS } };
   }
@@ -183,21 +181,15 @@ export function scorePoint(state: GameState): GameState {
   const servingTeamKey = newState.serving.team;
   const receivingTeamKey = servingTeamKey === 'A' ? 'B' : 'A';
   newState.teams[servingTeamKey].score += 1;
-
-  // Rotate the serving team's positions
   newState.teams[servingTeamKey] = rotatePositions(newState.teams[servingTeamKey]);
-
-  // Increment cumulative stats
   newState.matchStats[servingTeamKey].pointsWon += 1;
 
-  // Build score call string (after scoring)
   const scoreStr = formatScoreCall(
     newState.teams[servingTeamKey].score,
     newState.teams[receivingTeamKey].score,
     newState.serving.serverNumber,
   );
 
-  // Record event
   newState.events = [
     ...state.events,
     {
@@ -212,6 +204,18 @@ export function scorePoint(state: GameState): GameState {
       timestamp: Date.now(),
     },
   ];
+
+  // ✅ Eagerly increment gamesWon and check for match over right here
+  const gameWinCheck = isGameWon(newState);
+  if (gameWinCheck.isWon && gameWinCheck.winner) {
+    newState.gamesWon = { ...newState.gamesWon };
+    newState.gamesWon[gameWinCheck.winner] += 1;
+
+    const requiredWins = MATCH_MODES[safeMatchMode(newState.matchMode)].gamesToWin;
+    if (newState.gamesWon.A >= requiredWins || newState.gamesWon.B >= requiredWins) {
+      newState.isMatchOver = true;
+    }
+  }
 
   return newState;
 }
@@ -361,61 +365,37 @@ export function isGameWon(state: GameState): { isWon: boolean; winner: 'A' | 'B'
 
 // Check if the entire series match is won
 export function isMatchWon(state: GameState): { isWon: boolean; winner: 'A' | 'B' | null } {
-  // Guard: state itself or gamesWon may be undefined during first render
   if (!state || !state.gamesWon) return { isWon: false, winner: null };
 
-  // Guard: coerce matchMode to a valid key before indexing MATCH_MODES
-  const mode = safeMatchMode(state.matchMode);
-  const requiredWins = MATCH_MODES[mode].gamesToWin;
-
-  // Re-calculate based on current score because we might just have won a game
-  let projectedA = state.gamesWon.A ?? 0;
-  let projectedB = state.gamesWon.B ?? 0;
-
-  const currentWin = isGameWon(state);
-  if (currentWin.isWon) {
-    if (currentWin.winner === 'A') projectedA++;
-    if (currentWin.winner === 'B') projectedB++;
+  // ✅ Trust gamesWon directly — it's kept up to date by scorePoint now
+  if (state.isMatchOver) {
+    const winner = state.gamesWon.A > state.gamesWon.B ? 'A' : 'B';
+    return { isWon: true, winner };
   }
-
-  if (projectedA >= requiredWins) return { isWon: true, winner: 'A' };
-  if (projectedB >= requiredWins) return { isWon: true, winner: 'B' };
   return { isWon: false, winner: null };
 }
 
 // Move to the next game in a match
 export function startNextGame(state: GameState): GameState {
   const newState = JSON.parse(JSON.stringify(state)) as GameState;
-  // Ensure matchMode is always valid after deserialization
   newState.matchMode = safeMatchMode(newState.matchMode);
-  // Ensure gamesWon and currentGame are never undefined after deserialization
   newState.gamesWon = { A: newState.gamesWon?.A ?? 0, B: newState.gamesWon?.B ?? 0 };
   newState.currentGame = newState.currentGame ?? 1;
 
+  // Guard: only proceed if a game was actually won
   const gameWinCheck = isGameWon(state);
-  if (!gameWinCheck.isWon || !gameWinCheck.winner) return state; // Safety guard
+  if (!gameWinCheck.isWon || !gameWinCheck.winner) return state;
 
-  // Increment games won
-  newState.gamesWon[gameWinCheck.winner] += 1;
+  // Guard: don't start next game if match is already over
+  if (newState.isMatchOver) return state;
 
-  // Check match win (using updated state)
-  const requiredWins = MATCH_MODES[newState.matchMode].gamesToWin;
-  if (newState.gamesWon.A >= requiredWins || newState.gamesWon.B >= requiredWins) {
-    newState.isMatchOver = true;
-    return newState;
-  }
-
-  // Progress to next game
+  // ✅ gamesWon already incremented in scorePoint — just reset for next game
   newState.currentGame += 1;
   newState.teams.A.score = 0;
   newState.teams.B.score = 0;
 
-  // The loser of the previous game serves first
   const loser = gameWinCheck.winner === 'A' ? 'B' : 'A';
   newState.serving = { team: loser, serverNumber: 2, isFirstServe: true };
-
-  // IMPORTANT: Preserve events and matchStats across game transitions
-  // Events are tagged with game number so they can be filtered by game
   newState.gameHistory = [];
 
   return newState;

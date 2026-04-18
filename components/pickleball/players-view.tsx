@@ -41,8 +41,8 @@ function PlayerCutout({ src, alt, size }: { src: string; alt: string; size: 'lg'
       alt={alt}
       onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR; }}
       className={`object-contain object-bottom drop-shadow-[0_20px_50px_rgba(209,255,0,0.15)] ${size === 'lg'
-        ? 'h-[50vh] md:h-[75vh]'
-        : 'h-[45vh] md:h-[70vh] opacity-85'
+        ? 'h-[45vh] md:h-[65vh]'
+        : 'h-[40vh] md:h-[60vh] opacity-85'
         }`}
     />
   );
@@ -97,30 +97,27 @@ export function PlayersView({ gameState, matchWon, onEditPlayers }: PlayersViewP
         </div>
 
         {/* Vignette overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-kc-bg via-kc-bg/40 to-transparent" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-transparent to-kc-bg/30" />
+        <div className="absolute inset-0 z-10 bg-linear-to-t from-kc-bg via-kc-bg/40 to-transparent" />
+        <div className="absolute inset-0 z-10 bg-linear-to-r from-transparent to-kc-bg/30" />
 
         {/* Content */}
         <div className="relative z-20 h-full flex flex-col justify-end p-6 md:p-12 pb-24 md:pb-32">
           <span
-            className="mb-2 self-start font-lexend font-black italic uppercase tracking-tighter text-xs px-4 py-1 rounded-full"
+            className="mb-2 self-start font-lexend font-black italic uppercase tracking-tighter text-sm px-4 py-1 rounded-full"
             style={{
               background: aIsWinner ? 'var(--kc-accent)' : 'var(--kc-surface-variant)',
               color: aIsWinner ? '#000' : 'var(--kc-text-dim)',
             }}
           >
-            {getRoleLabel(aIsWinner, aIsLoser, 'A')}
+            {aIsWinner ? '🏆 ' : ''}{teamA.name}
           </span>
           <h2
-            className="font-lexend text-4xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.85] break-words"
+            className="font-lexend text-4xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.85] wrap-break-words"
             style={{ color: getTeamColor(aIsWinner, aIsLoser) }}
           >
             {teamA.players[0].name.toUpperCase()} &<br />
             {teamA.players[1].name.toUpperCase()}
           </h2>
-          <p className="font-lexend font-bold text-kc-text-dim uppercase tracking-widest mt-4 ml-1 text-sm">
-            {teamA.name}
-          </p>
         </div>
       </section>
 
@@ -219,30 +216,28 @@ export function PlayersView({ gameState, matchWon, onEditPlayers }: PlayersViewP
         </div>
 
         {/* Vignette overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-kc-bg via-kc-bg/40 to-transparent" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-l from-transparent to-kc-bg/30" />
+        <div className="absolute inset-0 z-10 bg-linear-to-t from-kc-bg via-kc-bg/40 to-transparent" />
+        <div className="absolute inset-0 z-10 bg-linear-to-l from-transparent to-kc-bg/30" />
 
         {/* Content */}
         <div className="relative z-20 h-full flex flex-col justify-end items-end text-right p-6 md:p-12 pb-24 md:pb-32">
           <span
-            className="mb-2 font-lexend font-black italic uppercase tracking-tighter text-xs px-4 py-1 rounded-full"
+            className="mb-2 font-lexend font-black italic uppercase tracking-tighter text-sm px-4 py-1 rounded-full"
             style={{
               background: bIsWinner ? 'var(--kc-accent)' : 'var(--kc-surface-variant)',
               color: bIsWinner ? '#000' : 'var(--kc-text-dim)',
             }}
           >
-            {getRoleLabel(bIsWinner, bIsLoser, 'B')}
+            {bIsWinner ? '🏆 ' : ''}{teamB.name}
           </span>
           <h2
-            className="font-lexend text-4xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.85] break-words"
+            className="font-lexend text-4xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.85] wrap-break-words"
             style={{ color: getTeamColor(bIsWinner, bIsLoser) }}
           >
             {teamB.players[0].name.toUpperCase()} &<br />
             {teamB.players[1].name.toUpperCase()}
           </h2>
-          <p className="font-lexend font-bold text-kc-text-dim uppercase tracking-widest mt-4 mr-1 text-sm">
-            {teamB.name}
-          </p>
+
         </div>
       </section>
 

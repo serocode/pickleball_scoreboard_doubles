@@ -111,123 +111,123 @@ export function PickleballDashboard() {
       {/* ========== VIEW CONTENT ========== */}
       {activeView === 'players' ? (
         <main className="mt-16 flex-1 w-full flex flex-col h-[calc(100vh-64px)] overflow-hidden animate-fade-in">
-          <PlayersView 
-            gameState={gameState} 
-            matchWon={matchWon} 
+          <PlayersView
+            gameState={gameState}
+            matchWon={matchWon}
             onEditPlayers={() => setSetupModalOpen(true)}
           />
         </main>
       ) : (
-      <main className="mt-20 px-4 max-w-5xl mx-auto pb-32 w-full">
-        {/* Match Won / Game Won Banners */}
-        {matchWon.isWon ? (
-          <div className="mb-6 rounded-[32px] p-8 text-center animate-fade-in" style={{ background: 'var(--kc-accent-container)', color: 'var(--kc-on-accent)' }}>
-            <span className="material-symbols-outlined text-6xl mb-4">trophy</span>
-            <h2 className="font-lexend font-black text-3xl uppercase tracking-widest mb-2">
-              {matchWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name} WINS THE MATCH!
-            </h2>
-            {gameState.matchMode !== 'casual' && (
-              <p className="font-lexend text-lg opacity-80 uppercase tracking-widest">
-                Final Score: {gameState.gamesWon?.A} — {gameState.gamesWon?.B}
+        <main className="mt-20 px-4 max-w-5xl mx-auto pb-32 w-full">
+          {/* Match Won / Game Won Banners */}
+          {matchWon.isWon ? (
+            <div className="mb-6 rounded-[32px] p-8 text-center animate-fade-in" style={{ background: 'var(--kc-accent-container)', color: 'var(--kc-on-accent)' }}>
+              <span className="material-symbols-outlined text-6xl mb-4">trophy</span>
+              <h2 className="font-lexend font-black text-3xl uppercase tracking-widest mb-2">
+                {matchWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name} WINS THE MATCH!
+              </h2>
+              {gameState.matchMode !== 'casual' && (
+                <p className="font-lexend text-lg opacity-80 uppercase tracking-widest">
+                  Final Score: {gameState.gamesWon?.A} — {gameState.gamesWon?.B}
+                </p>
+              )}
+            </div>
+          ) : gameWon.isWon ? (
+            <div className="mb-6 rounded-3xl p-6 text-center animate-fade-in" style={{ background: 'var(--kc-surface-high)', border: '2px solid var(--kc-accent)' }}>
+              <h3 className="font-lexend font-bold text-xl uppercase tracking-widest mb-1" style={{ color: 'var(--kc-accent)' }}>
+                {gameWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name} WINS GAME {gameState.currentGame}
+              </h3>
+              <p className="text-sm font-medium" style={{ color: 'var(--kc-text-dim)' }}>
+                Review the stats or start the next game when you're ready.
               </p>
-            )}
-          </div>
-        ) : gameWon.isWon ? (
-          <div className="mb-6 rounded-3xl p-6 text-center animate-fade-in" style={{ background: 'var(--kc-surface-high)', border: '2px solid var(--kc-accent)' }}>
-            <h3 className="font-lexend font-bold text-xl uppercase tracking-widest mb-1" style={{ color: 'var(--kc-accent)' }}>
-              {gameWon.winner === 'A' ? gameState.teams.A.name : gameState.teams.B.name} WINS GAME {gameState.currentGame}
-            </h3>
-            <p className="text-sm font-medium" style={{ color: 'var(--kc-text-dim)' }}>
-              Review the stats or start the next game when you're ready.
-            </p>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
 
-        {/* Game State Chips */}
-        <div className="flex flex-wrap items-center gap-2 mb-6 animate-fade-in">
-          <span
-            className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
-            style={{ background: 'var(--kc-secondary)', color: 'var(--kc-secondary-text)' }}
-          >
-            DOUBLES • {gameState.matchMode}
-          </span>
-          <span
-            className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
-            style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text)' }}
-          >
-            GAME {gameState.currentGame}
-          </span>
-          {!gameWon.isWon && !matchWon.isWon && (
+          {/* Game State Chips */}
+          <div className="flex flex-wrap items-center gap-2 mb-6 animate-fade-in">
             <span
-              className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest flex items-center gap-1.5"
-              style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-accent)' }}
+              className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
+              style={{ background: 'var(--kc-secondary)', color: 'var(--kc-secondary-text)' }}
             >
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--kc-accent)' }} />
-              LIVE
+              DOUBLES • {gameState.matchMode}
             </span>
-          )}
-          {gamePoint.isGamePoint && !gameWon.isWon && (
-            <span
-              className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest animate-pulse-glow"
-              style={{ background: 'var(--kc-accent)', color: 'var(--kc-on-accent)' }}
-            >
-              GAME POINT — {gamePoint.team === 'A' ? gameState.teams.A.name : gameState.teams.B.name}
-            </span>
-          )}
-          {momentum.streak.team && momentum.streak.count >= 3 && !gameWon.isWon && !matchWon.isWon && (
             <span
               className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
               style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text)' }}
             >
-              🔥 {momentum.streak.count} STREAK
+              GAME {gameState.currentGame}
             </span>
-          )}
-        </div>
+            {!gameWon.isWon && !matchWon.isWon && (
+              <span
+                className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest flex items-center gap-1.5"
+                style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-accent)' }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--kc-accent)' }} />
+                LIVE
+              </span>
+            )}
+            {gamePoint.isGamePoint && !gameWon.isWon && (
+              <span
+                className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest animate-pulse-glow"
+                style={{ background: 'var(--kc-accent)', color: 'var(--kc-on-accent)' }}
+              >
+                GAME POINT — {gamePoint.team === 'A' ? gameState.teams.A.name : gameState.teams.B.name}
+              </span>
+            )}
+            {momentum.streak.team && momentum.streak.count >= 3 && !gameWon.isWon && !matchWon.isWon && (
+              <span
+                className="px-3 py-1 rounded-full text-[10px] font-lexend font-bold uppercase tracking-widest"
+                style={{ background: 'var(--kc-surface-highest)', color: 'var(--kc-text)' }}
+              >
+                🔥 {momentum.streak.count} STREAK
+              </span>
+            )}
+          </div>
 
-        {/* View Content */}
-        <div className="space-y-6 animate-fade-in">
-          {activeView === 'scoring' && (
-            <>
-              <ScoreDisplay
+          {/* View Content */}
+          <div className="space-y-6 animate-fade-in">
+            {activeView === 'scoring' && (
+              <>
+                <ScoreDisplay
+                  gameState={gameState}
+                  servingTeam={servingTeam}
+                  lastAction={lastAction}
+                />
+                <ControlPanel
+                  onScorePoint={scorePoint}
+                  onFault={recordFault}
+                  onResetRequest={handleResetRequest}
+                  onRestartMatch={resetGameKeepSettings}
+                  onNextGame={startNextGame}
+                  onUndo={undo}
+                  canUndo={canUndo}
+                  isGameWon={gameWon.isWon}
+                  isMatchWon={matchWon.isWon}
+                />
+                <CourtDiagram
+                  gameState={gameState}
+                  servingTeam={servingTeam}
+                  serverPosition={serverPosition}
+                />
+              </>
+            )}
+
+            {activeView === 'stats' && (
+              <StatsView
                 gameState={gameState}
-                servingTeam={servingTeam}
-                lastAction={lastAction}
+                scoreCall={scoreCall}
+                momentum={momentum}
+                gamePoint={gamePoint}
+                winProbability={winProbability}
+                matchStats={matchStats}
               />
-              <ControlPanel
-                onScorePoint={scorePoint}
-                onFault={recordFault}
-                onResetRequest={handleResetRequest}
-                onRestartMatch={resetGameKeepSettings}
-                onNextGame={startNextGame}
-                onUndo={undo}
-                canUndo={canUndo}
-                isGameWon={gameWon.isWon}
-                isMatchWon={matchWon.isWon}
-              />
-              <CourtDiagram
-                gameState={gameState}
-                servingTeam={servingTeam}
-                serverPosition={serverPosition}
-              />
-            </>
-          )}
+            )}
 
-          {activeView === 'stats' && (
-            <StatsView
-              gameState={gameState}
-              scoreCall={scoreCall}
-              momentum={momentum}
-              gamePoint={gamePoint}
-              winProbability={winProbability}
-              matchStats={matchStats}
-            />
-          )}
-
-          {activeView === 'history' && (
-            <HistoryView events={events} gameState={gameState} />
-          )}
-        </div>
-      </main>
+            {activeView === 'history' && (
+              <HistoryView events={events} gameState={gameState} />
+            )}
+          </div>
+        </main>
       )}
 
       {/* ========== BOTTOM NAVIGATION ========== */}
